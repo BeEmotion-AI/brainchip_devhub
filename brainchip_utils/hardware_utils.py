@@ -56,7 +56,7 @@ def get_akida_device(target_version=None):
         return None
     else:
         if target_version is None:
-            if len(devices)>0:
+            if len(devices)>1:
                 print(str(len(devices)) + ' Akida devices found. Using the first device detected.')
             return devices[0]
         else:

@@ -284,7 +284,7 @@ by the code (via the `metrics.json` file, also in the docs folder).
 
 When the associated model or training pipeline is modified to improve
 performance, you should rerun the evaluations of the float, quantized
-and akida model versions, plus the hardware benchmark, including the 
+and Akida model versions, plus the hardware benchmark, including the 
 `--save-metrics` argument, and then regenerate the README from the template
 using `update_readme.py`: 
 ```bash
