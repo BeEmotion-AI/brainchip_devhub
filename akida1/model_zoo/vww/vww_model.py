@@ -35,7 +35,6 @@ def build_vww_model(seed = 42):
     classes = 2
     with set_akida_version(AkidaVersion.v1):
         base_model = akidanet_imagenet_pretrained(
-                                           
                                             alpha=0.25,
                                             quantized=False
         )
@@ -64,10 +63,8 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=42,
                         help='Random seed for reproducibility')
     args = parser.parse_args()
-
-    set_random_seed(args.seed)
     
-    model = build_vww_model()
+    model = build_vww_model(seed=args.seed)
     model.summary()
     model.save(args.savepath, include_optimizer=False)
     print(f'Model saved to {args.savepath}')

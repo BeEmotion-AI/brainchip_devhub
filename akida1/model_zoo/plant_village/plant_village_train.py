@@ -46,16 +46,17 @@ def train_plant_village(model, train_ds, val_ds, epochs, learning_rate, regulari
     # ---------------------------------------------------------------------------
     # Model
     # ---------------------------------------------------------------------------
-    model.compile(optimizer=Adam(learning_rate=learning_rate),
-                  loss=SparseCategoricalCrossentropy(from_logits=True),
-                  metrics=['accuracy'])
-
     if regularization is not None:
         print('Adding Activity Regularization to ReLU layers')
         regularizer = regularizers.L1L2(regularization, regularization)
         for layer in model.layers:
             if isinstance(layer, ReLU):
                 layer.activity_regularizer = regularizer
+
+    model.compile(optimizer=Adam(learning_rate=learning_rate),
+                  loss=SparseCategoricalCrossentropy(from_logits=True),
+                  metrics=['accuracy'])
+
 
     # ---------------------------------------------------------------------------
     # Training
