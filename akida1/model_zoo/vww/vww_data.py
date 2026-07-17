@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # Copyright 2025 Brainchip Holdings Ltd.  Apache 2.0 License
 
-import os
 import numpy as np
 import tensorflow as tf
 from tf_keras.preprocessing.image import ImageDataGenerator
+from tf_keras.utils import set_random_seed
 
 # Define the base directory for the VWW dataset
 
-def get_data(data_path, input_shape, batch_size, dtype=tf.uint8):
+def get_data(data_path, input_shape, batch_size, seed=42):
     """ Loads VWW data.
 
     Args:
@@ -20,10 +20,7 @@ def get_data(data_path, input_shape, batch_size, dtype=tf.uint8):
     Returns:
         tf_keras.data.Dataset, tf_keras.data.Dataset: training dataset, validation dataset
     """
-
-    def cast_data(image, label):
-        image = tf.cast(image, dtype)
-        return image, label
+    set_random_seed(seed)
 
     # Set aside .1 split for validation
     validation_split = 0.1
@@ -44,7 +41,8 @@ def get_data(data_path, input_shape, batch_size, dtype=tf.uint8):
         batch_size=batch_size,
         subset = 'training',
         color_mode='rgb',
-        class_mode = 'sparse')
+        class_mode = 'sparse',
+        shuffle=True)
 
     val_datagen = ImageDataGenerator(
         validation_split = validation_split)
@@ -55,7 +53,8 @@ def get_data(data_path, input_shape, batch_size, dtype=tf.uint8):
         batch_size=batch_size,
         subset = 'validation',
         color_mode='rgb',
-        class_mode = 'sparse')
+        class_mode = 'sparse',
+        shuffle=False)
 
     return train_generator, val_generator 
 

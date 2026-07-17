@@ -10,6 +10,9 @@ import argparse
 import json
 import pathlib
 import numpy as np
+import tensorflow as tf
+
+from tqdm import tqdm
 
 import akida
 
@@ -17,6 +20,8 @@ from cnn2snn import load_quantized_model
 
 from vww_data import get_data
 from brainchip_utils.hardware_utils import get_akida_device
+
+tf.config.experimental.enable_op_determinism()
 
 # ---------------------------------------------------------------------------
 # Evaluation on Akida
@@ -32,14 +37,18 @@ def evaluate_akida_model(akida_model, val_dataset):
     labels_all = None
     logits_all = None
 
-    # Akida can't directly digest the tensorflow dataset, we need to 
-    # manually iterate over the dataset to deliver inputs as numpy arrays
-    for batch, label_batch in val_dataset:
+    # Akida can't directly digest the tensorflow dataset, we need to
+    # manually iterate over the dataset to deliver inputs as numpy arrays.
+    # val_dataset is a Keras DirectoryIterator, which cycles indefinitely,
+    # so we must limit iteration to a single epoch (len(val_dataset) batches).
+    num_batches = len(val_dataset)
+    for _ in tqdm(range(num_batches), desc="Evaluating on Akida"):
+        batch, label_batch = next(val_dataset)
         if not isinstance(batch, np.ndarray):
             batch = batch.numpy()
 
         # Inference on Akida
-        logits_batch = akida_model.predict(batch)
+        logits_batch = akida_model.predict(batch.astype(np.uint8))
         logits_batch = logits_batch.squeeze(axis=(1, 2))  # (B, 1, 1, C) -> (B, C)
 
         if labels_all is None:

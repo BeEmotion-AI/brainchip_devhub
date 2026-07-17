@@ -10,6 +10,7 @@ dependencies = [
     "tensorflow[and-cuda]==2.19.1",
     "tensorflow-metadata<1.21",
     "akida_models==1.14.0",
+    "pyftdi",
     "ipykernel"
 ]
 

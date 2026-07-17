@@ -4,15 +4,16 @@
 VWW per-layer hardware benchmark.
 
 Runs a per-layer timing benchmark on an Akida VWW model, prints a summary
-table, saves results as CSV, and generates a summary plot.
+table, and generates a summary plot.
 
 Example
 -------
-    python vww_benchmark.py -l akidanet_vww.fbz
+    python vww_benchmark.py -l pretrained_models/akidanet_vww.fbz
 """
 import argparse
 import json
 import pathlib
+import sys
 import time
 
 import numpy as np
@@ -48,7 +49,9 @@ if __name__ == '__main__':
     # Device
     # -------------------------------------------------------------------------
     device = get_akida_device(target_version=ak_model.ip_version)
-    assert device is not None, 'No compatible Akida hardware device found.'
+    if device is None:
+        sys.exit('No compatible Akida hardware device found. Skipping benchmarking')
+
     # TODO: Add a check to get clock frequency specific to device
     CLOCK_FREQUENCY = 400e6 # 400 MHz for AKD1500
     

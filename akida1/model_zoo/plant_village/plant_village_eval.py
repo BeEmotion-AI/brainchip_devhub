@@ -10,6 +10,7 @@ import argparse
 import json
 import pathlib
 import numpy as np
+import tensorflow as tf
 from tqdm import tqdm
 
 import akida
@@ -18,6 +19,8 @@ from cnn2snn import load_quantized_model
 
 from plant_village_data import get_data
 from brainchip_utils.hardware_utils import get_akida_device
+
+tf.config.experimental.enable_op_determinism()
 
 # ---------------------------------------------------------------------------
 # Evaluation on Akida

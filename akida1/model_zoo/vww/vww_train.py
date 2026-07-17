@@ -9,12 +9,11 @@ Example
         -l akidanet_vww_untrained.h5 -s akidanet_vww.h5
 """
 import argparse
+import tensorflow as tf
 
-from tf_keras import Model
 from tf_keras.losses import SparseCategoricalCrossentropy
 from tf_keras.optimizers.legacy import Adam
 from tf_keras.optimizers.schedules import CosineDecay
-from tf_keras.callbacks import LearningRateScheduler
 from tf_keras import regularizers
 from tf_keras.layers import ReLU
 from tf_keras.utils import set_random_seed
@@ -23,9 +22,12 @@ from cnn2snn import load_quantized_model
 
 from vww_data import get_data
 
+# Must be called before any TF ops to make GPU ops (conv backward passes,
+# bilinear resize, etc.) deterministic. Has a small throughput cost.
+tf.config.experimental.enable_op_determinism()
 
-
-def train_vww(model, train_ds, val_ds, epochs, learning_rate, regularization=None):
+def train_vww(model, train_ds, val_ds, epochs, learning_rate, regularization=None, seed=42):
+    set_random_seed(seed)
     
     steps_per_epoch = len(train_ds)
     total_steps = steps_per_epoch * epochs
@@ -40,10 +42,6 @@ def train_vww(model, train_ds, val_ds, epochs, learning_rate, regularization=Non
     # ---------------------------------------------------------------------------
     # Model
     # ---------------------------------------------------------------------------
-    model.compile(optimizer=Adam(learning_rate=lr_scheduler),
-                  loss=SparseCategoricalCrossentropy(from_logits=True),
-                  metrics=['accuracy'])
-    
     if regularization is not None:
         print('Adding Activity Regularization to ReLU layers')
         regularizer = regularizers.L1L2(regularization, regularization)
@@ -51,7 +49,11 @@ def train_vww(model, train_ds, val_ds, epochs, learning_rate, regularization=Non
             if isinstance(layer, ReLU):
                 layer.activity_regularizer = regularizer
 
-
+    model.compile(optimizer=Adam(learning_rate=lr_scheduler),
+                  loss=SparseCategoricalCrossentropy(from_logits=True),
+                  metrics=['accuracy'])
+    
+    
     # ---------------------------------------------------------------------------
     # Training
     # ---------------------------------------------------------------------------
@@ -82,8 +84,6 @@ if __name__ == '__main__':
                         help='Random seed for reproducibility')
     args = parser.parse_args()
 
-    set_random_seed(args.seed)
-
     # ---------------------------------------------------------------------------
     # Model
     # ---------------------------------------------------------------------------
@@ -92,14 +92,15 @@ if __name__ == '__main__':
     # ---------------------------------------------------------------------------
     # Data loading
     # ---------------------------------------------------------------------------
-    train_ds, val_ds = get_data(args.data, model.input_shape[1:], args.batch_size)
+    train_ds, val_ds = get_data(args.data, model.input_shape[1:], args.batch_size, seed=args.seed)
 
     train_vww(model=model,
               train_ds=train_ds,
               val_ds=val_ds,
               epochs=args.epochs,
               learning_rate=args.learning_rate,
-              regularization=args.regularization)
+              regularization=args.regularization,
+              seed=args.seed)
     
     model.save(args.savemodel, include_optimizer=False)
     print(f'Model saved as {args.savemodel}.')
